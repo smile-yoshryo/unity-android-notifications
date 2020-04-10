@@ -8,3 +8,13 @@ UnityVS
 *.sou
 *.sln
 *.csproj
+
+# Visual Studio, Code
+UnityProject/.vs/*
+UnityProject/.vscode/*
+
+# Android Build
+*.apk
+
+# iOS Build
+/[Xx]code/
