@@ -1,12 +1,13 @@
 #import <UIKit/UIKit.h>
 #import <Foundation/NSURLConnection.h>
 #import <Foundation/NSURL.h>
+#import <UserNotifications/UserNotifications.h>
 
 #import "UnityAppController.h"
 
 extern bool _unityAppReady;
 
-@interface LocalNotificationAppController : UnityAppController
+@interface LocalNotificationAppController : UnityAppController<UNUserNotificationCenterDelegate>
 {}
 - (void)application:(UIApplication *)application handleActionWithIdentifier:(NSString *)identifier forLocalNotification:(UILocalNotification *)notification completionHandler:(void (^)())completionHandler;
 @end
@@ -15,6 +16,18 @@ extern bool _unityAppReady;
 - (void)application:(UIApplication *)application handleActionWithIdentifier:(NSString *)identifier forLocalNotification:(UILocalNotification *)notification completionHandler:(void (^)())completionHandler
 {
     [self notifyUnityOfAction:identifier inNotification:notification completionHandler:completionHandler];
+}
+
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary*)launchOptions
+{
+    [super application:application didFinishLaunchingWithOptions:launchOptions];
+    
+    // iOS 10でレシーブを受け取るための対応
+    float version = [[[UIDevice currentDevice] systemVersion] floatValue];
+    if (version >= 10.0) {
+        [UNUserNotificationCenter currentNotificationCenter].delegate = self;
+    }
+    return YES;
 }
 
 - (void)notifyUnityOfAction:(NSString*)identifier inNotification:(UILocalNotification*)notification completionHandler:(void (^)())completionHandler
@@ -42,6 +55,37 @@ extern bool _unityAppReady;
             [self notifyUnityOfAction:identifier inNotification:notification completionHandler:completionHandler];
         }];
     }
+}
+
+// ローカルプッシュ受け取り
+-(void)application:(UIApplication *)application didReceiveLocalNotification:(UILocalNotification *)notification {
+    float version = [[[UIDevice currentDevice] systemVersion] floatValue];
+    if (version < 10.0) {
+        NSLog(@"通知受信");
+    }
+}
+
+// プッシュ通知タップ時(ios10)
+- (void)userNotificationCenter:(UNUserNotificationCenter *)center didReceiveNotificationResponse:(UNNotificationResponse *)response withCompletionHandler:(void (^)())completionHandler {
+    float version = [[[UIDevice currentDevice] systemVersion] floatValue];
+    if (version >= 10.0) {
+        NSLog(@"recived");
+    }
+    completionHandler();
+}
+
+// プッシュ受け取りフォワグラウンド(ios10)
+- (void)userNotificationCenter:(UNUserNotificationCenter *)center willPresentNotification:(UNNotification *)notification withCompletionHandler:(void (^)(UNNotificationPresentationOptions options)) completionHandler {
+    
+    if([notification.request.trigger isKindOfClass:[UNPushNotificationTrigger class]]) {
+        
+    }
+    else {
+        
+    }
+    completionHandler(UNNotificationPresentationOptionNone);
+    
+    NSLog(@"受信？");
 }
 @end
 

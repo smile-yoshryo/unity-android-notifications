@@ -1,4 +1,8 @@
-﻿#import <Foundation/Foundation.h>
+#import <Foundation/Foundation.h>
+#import <UserNotifications/UserNotifications.h>
+
+@interface AppDelegate : UIResponder <UIApplicationDelegate, UNUserNotificationCenterDelegate>
+@end
 
 struct NotificationActionStruct {
     char* identifier;
