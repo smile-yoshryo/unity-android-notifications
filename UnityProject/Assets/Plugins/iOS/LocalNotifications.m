@@ -3,9 +3,9 @@
 
 NSMutableDictionary *registeredThisLaunch = nil;
 
-void registerCategory(struct NotificationStruct *notifStruct) {
+void registerCategory(NotificationStructBase notifStruct) {
     // 同一カテゴリの重複登録防止
-    NSString *categoryIdentifier = [NSString stringWithUTF8String:notifStruct->category];
+    NSString *categoryIdentifier = [NSString stringWithUTF8String:notifStruct.category];
     if (registeredThisLaunch == nil)
         registeredThisLaunch = [NSMutableDictionary dictionary];
     else if ([registeredThisLaunch objectForKey:categoryIdentifier] != nil)
@@ -17,7 +17,7 @@ void registerCategory(struct NotificationStruct *notifStruct) {
         UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
         [center requestAuthorizationWithOptions:(UNAuthorizationOptionAlert |
                                                  UNAuthorizationOptionBadge |
-                                                 (notifStruct->sound ? UNAuthorizationOptionSound : 0))
+                                                 (notifStruct.sound ? UNAuthorizationOptionSound : 0))
                               completionHandler:^(BOOL granted, NSError * _Nullable error) {
             if(error){
                 NSLog( @"Push registration FAILED" );
@@ -28,10 +28,10 @@ void registerCategory(struct NotificationStruct *notifStruct) {
             NSLog( @"Push registration SUCESS!!" );
             
             // actions
-            struct NotificationActionStruct *actionStructs = &notifStruct->action1;
-            if (notifStruct->actionCount > 0 && actionStructs != nil) {
+            const struct NotificationActionStruct *actionStructs = &notifStruct.action1;
+            if (notifStruct.actionCount > 0 && actionStructs != NULL) {
                 NSMutableArray<UNNotificationAction *> *actions = [NSMutableArray array];
-                for (int i = 0; i < MIN(4, notifStruct->actionCount); i++) {
+                for (int i = 0; i < MIN(4, notifStruct.actionCount); i++) {
                     struct NotificationActionStruct actionStruct = actionStructs[i];
                     NSString *actTitle = [NSString stringWithUTF8String:actionStruct.title];
                     NSString *gameObject = [NSString stringWithUTF8String:actionStruct.gameObject];
@@ -65,7 +65,7 @@ void registerCategory(struct NotificationStruct *notifStruct) {
     }else{
         // permissions
         UIUserNotificationType types = UIUserNotificationTypeBadge | UIUserNotificationTypeAlert;
-        if (notifStruct->sound) {
+        if (notifStruct.sound) {
             types |= UIUserNotificationTypeSound;
         }
 
@@ -73,10 +73,10 @@ void registerCategory(struct NotificationStruct *notifStruct) {
         UIMutableUserNotificationCategory *category = [[UIMutableUserNotificationCategory alloc] init];
         category.identifier = categoryIdentifier;
         
-        if (notifStruct->actionCount > 0) {
+        if (notifStruct.actionCount > 0) {
             NSMutableArray<UIUserNotificationAction *> *actions = [NSMutableArray array];
-            struct NotificationActionStruct *actionStructs = &notifStruct->action1;
-            for (int i = 0; i < MIN(4, notifStruct->actionCount); i++) {
+            struct NotificationActionStruct *actionStructs = &notifStruct.action1;
+            for (int i = 0; i < MIN(4, notifStruct.actionCount); i++) {
                 struct NotificationActionStruct actionStruct = actionStructs[i];
                 UIMutableUserNotificationAction *action = [[UIMutableUserNotificationAction alloc] init];
                 action.title = [NSString stringWithUTF8String:actionStruct.title];
@@ -120,7 +120,15 @@ NSString* findSoundResourceForName(NSString *soundName) {
 }
 
 void scheduleNotification(struct NotificationStruct *notifStruct) {
-    registerCategory(notifStruct);
+    NotificationStructBase base;
+    base.category = notifStruct->category;
+    base.sound = notifStruct->sound;
+    base.actionCount = notifStruct->actionCount;;
+    base.action1 = notifStruct->action1;
+    base.action2 = notifStruct->action2;
+    base.action3 = notifStruct->action3;
+    base.action4 = notifStruct->action4;
+    registerCategory(base);
     cancelNotification(notifStruct->identifier);
 
     // UILocalNotificationはiOS10以降では非推奨、動かない
@@ -151,6 +159,46 @@ void scheduleNotification(struct NotificationStruct *notifStruct) {
 
         [UIApplication.sharedApplication scheduleLocalNotification:notification];
     }
+}
+
+// カレンダー日付でスケジュール
+void scheduleCalendarNotification(struct CalendarNotificationStruct *notifStruct) {
+    float version = [[[UIDevice currentDevice] systemVersion] floatValue];
+    if (version < 10.0){
+        return;
+    }
+    
+    NotificationStructBase base;
+    base.category = notifStruct->category;
+    base.sound = notifStruct->sound;
+    base.actionCount = notifStruct->actionCount;;
+    base.action1 = notifStruct->action1;
+    base.action2 = notifStruct->action2;
+    base.action3 = notifStruct->action3;
+    base.action4 = notifStruct->action4;
+    registerCategory(base);
+    cancelNotification(notifStruct->identifier);
+    
+    UNMutableNotificationContent* content = [[UNMutableNotificationContent alloc] init];
+    content.body = [NSString stringWithUTF8String:notifStruct->message];
+    if (notifStruct->soundName) {
+        NSString *soundName = findSoundResourceForName([NSString stringWithUTF8String:notifStruct->soundName]);
+        content.sound = [UNNotificationSound soundNamed:soundName];
+    }
+    content.userInfo = @{@"identifier": [NSNumber numberWithInteger:notifStruct->identifier]};
+    
+    NSDateComponents* date = [[NSDateComponents alloc] init];
+    date.year = notifStruct->year;
+    date.month = notifStruct->month;
+    date.day = notifStruct->day;
+    date.hour = notifStruct->hour;
+    date.minute = notifStruct->minute;
+    UNCalendarNotificationTrigger* trigger = [UNCalendarNotificationTrigger triggerWithDateMatchingComponents:date
+                                                                                                      repeats:(notifStruct->isRepeat ? YES: NO)];
+    UNNotificationRequest* request = [UNNotificationRequest requestWithIdentifier:[NSString stringWithFormat:@"%d", notifStruct->identifier]
+                                                                          content:content
+                                                                          trigger:trigger];
+    [UNUserNotificationCenter.currentNotificationCenter addNotificationRequest:request withCompletionHandler:^(NSError * _Nullable error) {}];
 }
 
 void cancelNotification(int identifier) {
