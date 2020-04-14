@@ -1,4 +1,5 @@
-﻿#import <Foundation/Foundation.h>
+#import <Foundation/Foundation.h>
+#import <UserNotifications/UserNotifications.h>
 
 struct NotificationActionStruct {
     char* identifier;
@@ -41,7 +42,8 @@ struct CalendarNotificationStruct {
     int day;
     int hour;
     int minute;
-    bool isRepeat;
+    int weekDay;
+    int repeatType;
     char* category;
     bool sound;
     char* soundName;
@@ -50,6 +52,12 @@ struct CalendarNotificationStruct {
     struct NotificationActionStruct action2;
     struct NotificationActionStruct action3;
     struct NotificationActionStruct action4;
+};
+
+typedef NS_ENUM(NSInteger, NotificateRepeatType) {
+    NotificateRepeatNone = 0,
+    NotificateRepeatDay = 1,
+    NotificateRepeatWeek = 2,
 };
 
 #ifdef __cplusplus

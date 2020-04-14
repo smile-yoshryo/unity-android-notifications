@@ -188,13 +188,20 @@ void scheduleCalendarNotification(struct CalendarNotificationStruct *notifStruct
     content.userInfo = @{@"identifier": [NSNumber numberWithInteger:notifStruct->identifier]};
     
     NSDateComponents* date = [[NSDateComponents alloc] init];
-    date.year = notifStruct->year;
-    date.month = notifStruct->month;
-    date.day = notifStruct->day;
+    // 繰り返し設定.週 or 日
+    bool isRepeat = notifStruct->repeatType != NotificateRepeatNone;
+    if (!isRepeat) {
+        date.year = notifStruct->year;
+        date.month = notifStruct->month;
+        date.day = notifStruct->day;
+    }
+    if(notifStruct->repeatType == NotificateRepeatWeek){
+        date.weekday = notifStruct->weekDay;
+    }
     date.hour = notifStruct->hour;
     date.minute = notifStruct->minute;
     UNCalendarNotificationTrigger* trigger = [UNCalendarNotificationTrigger triggerWithDateMatchingComponents:date
-                                                                                                      repeats:(notifStruct->isRepeat ? YES: NO)];
+                                                                                                      repeats:(isRepeat ? YES: NO)];
     UNNotificationRequest* request = [UNNotificationRequest requestWithIdentifier:[NSString stringWithFormat:@"%d", notifStruct->identifier]
                                                                           content:content
                                                                           trigger:trigger];
