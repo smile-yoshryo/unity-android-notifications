@@ -21,10 +21,8 @@ public class UnityNotificationActivity extends UnityPlayerActivity {
         super.onStart();
 
         Intent intent = this.getIntent();
-        String title = intent.getStringExtra("title");
-        String message = intent.getStringExtra("message");
-        String soundName = intent.getStringExtra("soundName");
-        Log.d("localpush", "onStart: called, title="+title+", message="+message+", soundName="+soundName);
+        int id = intent.getIntExtra("identifier", 0);
+        Log.d("localpush", "onStart: called, id="+id);
 
         // ここでUnity処理を呼びだす
 
