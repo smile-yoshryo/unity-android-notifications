@@ -40,10 +40,10 @@ task deleteOldJar(type: Delete) {
 }
 
 task exportJar(type: Copy) {
-    // classes.jarの位置がよく変わるので要注意！！
-    from('build/intermediates/runtime_library_classes/release/classes.jar')
+    // classes.jarの位置がよく変わるので要注意！！出力されなくなったらintermediates以下に対してclasses.jarでgrepをかけよう.
+    from('build/intermediates/aar_main_jar/release/classes.jar')
     into('release/')
     rename('classes.jar', 'notification.jar')
 }
 
-exportJar.dependsOn(deleteOldJar, build)
+exportJar.dependsOn(cleanBuildCache, deleteOldJar, build)
