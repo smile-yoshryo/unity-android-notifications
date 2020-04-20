@@ -21,7 +21,7 @@ public class UnityNotificationActivity extends Activity {
         String message = intent.getStringExtra("message");
         String soundName = intent.getStringExtra("soundName");
         Log.d("localpush", "activity onCreate: message="+message+", soundName="+soundName);
-        UnityPlayer.UnitySendMessage("LocalNotification", "OnForcusFromNotification", "{ message="+message+", soundName="+soundName+" }");
+        UnityPlayer.UnitySendMessage("LocalNotification", "OnForcusFromNotification", "message="+message+"\nsoundName="+soundName+"");
 
         Intent i = new Intent(this.getApplication(), UnityPlayerActivity.class);
         this.startActivity(i);
