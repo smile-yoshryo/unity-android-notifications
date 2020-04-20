@@ -1,6 +1,7 @@
 package net.agasper.unitynotification;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -12,12 +13,20 @@ public class UnityNotificationActivity extends UnityPlayerActivity {
         Log.d("localpush", "onCreate: called");
         // UnityPlayerActivity.onCreate() を呼び出す
         super.onCreate(savedInstanceState);
+
     }
 
     @Override
     protected  void onStart() {
         super.onStart();
-        Log.d("localpush", "onStart: called");
+
+        Intent intent = this.getIntent();
+        String title = intent.getStringExtra("title");
+        String message = intent.getStringExtra("message");
+        String soundName = intent.getStringExtra("soundName");
+        Log.d("localpush", "onStart: called, title="+title+", message="+message+", soundName="+soundName);
+
         // ここでUnity処理を呼びだす
+
     }
 }
