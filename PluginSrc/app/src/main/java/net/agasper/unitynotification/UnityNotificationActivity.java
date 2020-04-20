@@ -5,26 +5,26 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 
+import com.unity3d.player.UnityPlayer;
 import com.unity3d.player.UnityPlayerActivity;
 
-public class UnityNotificationActivity extends UnityPlayerActivity {
+
+public class UnityNotificationActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Log.d("localpush", "onCreate: called");
         // UnityPlayerActivity.onCreate() を呼び出す
         super.onCreate(savedInstanceState);
 
-    }
+        // ここでUnity処理を呼びだす.
+        final UnityNotificationActivity self = this;
+        Intent intent = self.getIntent();
+        String message = intent.getStringExtra("message");
+        String soundName = intent.getStringExtra("soundName");
+        Log.d("localpush", "activity onCreate: message="+message+", soundName="+soundName);
+        UnityPlayer.UnitySendMessage("LocalNotification", "OnForcusFromNotification", "{ message="+message+", soundName="+soundName+" }");
 
-    @Override
-    protected  void onStart() {
-        super.onStart();
-
-        Intent intent = this.getIntent();
-        int id = intent.getIntExtra("identifier", 0);
-        Log.d("localpush", "onStart: called, id="+id);
-
-        // ここでUnity処理を呼びだす
-
+        Intent i = new Intent(this.getApplication(), UnityPlayerActivity.class);
+        this.startActivity(i);
+        this.finish();
     }
 }

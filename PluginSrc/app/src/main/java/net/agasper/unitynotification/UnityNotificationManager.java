@@ -220,7 +220,8 @@ public class UnityNotificationManager extends BroadcastReceiver
 
         Intent resultIntent = new Intent(context, UnityNotificationActivity.class);
         // Activity側で検知できるように必要情報の入れ直し.
-        resultIntent.putExtra("identifier", id);
+        resultIntent.putExtra("message", message);
+        resultIntent.putExtra("soundName", soundName);
 //        Intent notificationIntent = context.getPackageManager().getLaunchIntentForPackage(bundle);  // bundle由来のintentは使用せず独自作成しているintentを使用することで通知からの起動を検知する.
 
         TaskStackBuilder stackBuilder = TaskStackBuilder.create(context);
